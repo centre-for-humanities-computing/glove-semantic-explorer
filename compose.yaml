@@ -1,0 +1,17 @@
+services:
+  server:
+    image: sermon_embeddings/server
+    build: .
+    ports: 
+      - "7012:8080"
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 5
+    volumes:
+      - type: bind
+        source: ./model
+        target: /model
+    environment:
+      DASH_URL_BASE_PATHNAME: "/sermon-embeddings/"
