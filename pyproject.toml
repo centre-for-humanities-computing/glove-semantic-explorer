@@ -1,0 +1,25 @@
+[tool.ruff]
+line-length=79
+
+[tool.black]
+line-length=79
+
+[tool.poetry]
+name = "glove-semantic-explorer"
+version = "0.1.0"
+description = "Easy to use CLI to set up embedding-explorer for deployment on a corpus with GloVe word embeddings"
+authors = ["Márton Kardos <power.up1163@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+glovpy = "^0.1.0"
+gensim = "^4.2.0"
+embedding_explorer="^0.5.2"
+radicli = "^0.0.24"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
