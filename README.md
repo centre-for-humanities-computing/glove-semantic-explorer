@@ -47,7 +47,7 @@ The way this can be done with our CLI is by auto-generating a `Dockerfile`, a `c
 To output this into a folder called `deployment/`, run the following command:
 
 ```bash
-python3 -m glove_semantic_explorer generate_docker -m model/glove.kv --port 8080 -o deployment/
+python3 -m glove_semantic_explorer generate_docker "your_project_name" -m model/glove.kv -p 8080 -o deployment/
 ```
 
 > Beware that the model file only gets mounted to the container, and thus should not be removed, moved or renamed.
