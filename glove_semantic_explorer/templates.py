@@ -35,7 +35,7 @@ CMD gunicorn --timeout 0 -b 0.0.0.0:8080 --worker-tmp-dir /dev/shm --workers=2 -
 COMPOSE_TEMPLATE = """
 services:
   server:
-    image: sermon_embeddings/server
+    image: {project_name}/server
     build: .
     ports: 
       - "{port}:8080"

@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional, Union
 
 from embedding_explorer.app import get_dash_app
 from embedding_explorer.blueprints.explorer import create_explorer
@@ -8,16 +8,14 @@ from gensim.utils import tokenize
 from glovpy import GloVe
 from radicli import Arg, Radicli
 
-from glove_semantic_explorer.templates import (
-    COMPOSE_TEMPLATE,
-    DOCKERFILE_TEMPLATE,
-    MAIN_FILE_TEMPLATE,
-)
+from glove_semantic_explorer.templates import (COMPOSE_TEMPLATE,
+                                               DOCKERFILE_TEMPLATE,
+                                               MAIN_FILE_TEMPLATE)
 
 cli = Radicli()
 
 
-def stream_sentences(files: list[str]) -> Iterable[list[str]]:
+def stream_sentences(files: Iterable[Union[str, Path]]) -> Iterable[list[str]]:
     for file in files:
         with open(file) as in_file:
             for line in in_file:
@@ -37,17 +35,17 @@ def stream_sentences(files: list[str]) -> Iterable[list[str]]:
 )
 def train_model(data_folder: str, out_path: str = "model/glove.kv") -> None:
     print("Collecting training data.")
-    data_folder = Path(data_folder)
-    files = data_folder.glob("*.txt")
+    data_path = Path(data_folder)
+    files = data_path.glob("*.txt")
     sentences = list(stream_sentences(files))
     print("Training Word embeddings.")
     model = GloVe(vector_size=50)
     model.train(sentences)
     print("Saving embeddings.")
-    out_path = Path(out_path)
-    out_dir = out_path.parent
+    out_file = Path(out_path)
+    out_dir = out_file.parent
     out_dir.mkdir(exist_ok=True)
-    model.wv.save(str(out_path))
+    model.wv.save(str(out_file))
     print("DONE")
 
 
@@ -69,6 +67,7 @@ def run_explorer(model_path: str = "model/glove.kv", port: int = 8080) -> None:
 
 @cli.command(
     "generate_docker",
+    project_name=Arg(help="Name of the project in the compose file."),
     model_path=Arg(
         "--model_file",
         "-m",
@@ -78,7 +77,7 @@ def run_explorer(model_path: str = "model/glove.kv", port: int = 8080) -> None:
     url_base_pathname=Arg(
         "--url_base_pathname",
         "-u",
-        help="Base path name of the app at the port.",
+        help="Base path name of the app at the port. If not specified it is set to project_name.",
     ),
     out_dir=Arg(
         "--out_dir",
@@ -87,24 +86,26 @@ def run_explorer(model_path: str = "model/glove.kv", port: int = 8080) -> None:
     ),
 )
 def generate_docker(
+    project_name: str,
     model_path: str = "model/glove.kv",
     port: int = 8080,
-    url_base_pathname: str = "/",
+    url_base_pathname: Optional[str] = None,
     out_dir: str = "deployment/",
 ):
-    out_dir = Path(out_dir)
-    out_dir.mkdir(exist_ok=True)
+    out_path = Path(out_dir)
+    out_path.mkdir(exist_ok=True)
     print("Generating files for deployment.")
-    with out_dir.joinpath("main.py").open("w") as main_file:
+    with out_path.joinpath("main.py").open("w") as main_file:
         main_file.write(MAIN_FILE_TEMPLATE)
-    with out_dir.joinpath("Dockerfile").open("w") as dockerfile:
+    with out_path.joinpath("Dockerfile").open("w") as dockerfile:
         dockerfile.write(DOCKERFILE_TEMPLATE)
-    with out_dir.joinpath("compose.yaml").open("w") as dockerfile:
+    with out_path.joinpath("compose.yaml").open("w") as dockerfile:
         dockerfile.write(
             COMPOSE_TEMPLATE.format(
                 port=port,
                 model_path=Path(model_path).absolute(),
-                url_base_pathname=url_base_pathname,
+                url_base_pathname=url_base_pathname or f"/{project_name}/",
+                project_name=project_name,
             )
         )
     print("DONE")
