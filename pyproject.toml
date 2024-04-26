@@ -6,7 +6,7 @@ line-length=79
 
 [tool.poetry]
 name = "glove-semantic-explorer"
-version = "0.1.0"
+version = "0.1.1"
 description = "Easy to use CLI to set up embedding-explorer for deployment on a corpus with GloVe word embeddings"
 authors = ["Márton Kardos <power.up1163@gmail.com>"]
 license = "MIT"
